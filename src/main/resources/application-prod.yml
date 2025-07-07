@@ -1,0 +1,55 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: esl_interface
+  docker:
+    compose:
+      enabled: false
+  data:
+    mongodb:
+      uri: mongodb://esl_interface:0hTQos3g+cJjNglMAOGzQg==@10.253.22.112:27017/esl_interface?authSource=admin
+      host: 10.253.22.112
+      port: 27017
+      user: esl_interface
+      password: 0hTQos3g+cJjNglMAOGzQg==
+  datasource:
+    url: jdbc:log4jdbc:oracle:thin:@174.100.25.45:1521/SOSS
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    username: 'IF_ESL_DPT0'
+    password: '17#DEPT_0058'
+    hikari:
+      jdbc-url: jdbc:log4jdbc:oracle:thin:@174.100.25.45:1521/SOSS
+      driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+      data-source-properties:
+        user: 'IF_ESL_DPT0'
+        password: '17#DEPT_0058'
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+server:
+  port: 18080
+  schedule:
+    receiveTetpluEsl.cron: 0 10 6 * * *
+    receiveVTetrplEsl.cron: 0 */30 * * * *
+
+logging:
+  level:
+    root: INFO
+    net.sf.log4jdbc: DEBUG
+
+api:
+  url: https://10.253.22.112:9002/
+  store: 14
+
+file:
+  path: /app/esl_if/daily/
+  columns: STORE_CODE,PLU_CODE,PRICE_SECT,START_DATE,END_DATE,MD_CODE,PUM_CODE,EVENT_SECT,CLASS_CODE,PLU_NAME,CURR_SAL_PRICE,GOODS_SECT,MG_RATE,TAX_FLAG,SYS_DATE,SYS_TIME,ORIGIN_NAME,NOR_SAL_PRICE,CONTENTS_QTY,DISPLAY_UNIT_NAME,DISPLAY_UNIT_QTY,DEAL_GUBN,ORIGIN_CODE,BRAND_NAME,CATE_CODE,CATE_NAME,MOD_DATE,MOD_TIME,MOD_EMPNO,IF_DATE,IF_TIME,IF_EMPNO,DISPLAY_UNIT_PRICE,SELLNG_PNT,GOOS_AUTH_IMG,WINE_SUGR_CONT,WINE_BODY,WINE_KIND,WINE_EVAL_1,WINE_EVAL_2,WINE_EVAL_3,WINE_PLOR,WINE_ITEM_KIND,WINE_VINT,MOBL_CUP_GOOS_YN,LAYOUT_GUBN_1,LAYOUT_GUBN_2,QR_CODE,CONTENTS_QTY_UNIT,COMBINE_DISPLAY_UNIT_PRICE,DISPLAY_TYPE,GOOS_INFO1,GOOS_INFO2

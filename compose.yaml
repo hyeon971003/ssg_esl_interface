@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: 'mongo:latest'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=dbkoo
+      - MONGO_INITDB_ROOT_PASSWORD=ajfxlvmffkdl12!
+      - MONGO_INITDB_DATABASE=esl-local
+    ports:
+      - '27016:27017'
+
+  redis:
+    image: 'redis:latest'
+    ports:
+      - '6378:6379'
+
+  esl_interface:
+    image: dbkoo/esl_interface_d:latest
+    platform: linux/amd64
+    ports:
+      - "18080:8080"
+    restart: unless-stopped

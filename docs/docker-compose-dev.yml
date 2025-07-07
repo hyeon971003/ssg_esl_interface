@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  app:
+    image: esl_if_dev_v6:250225
+    container_name: "esl_if_dev_v6"
+    ports:
+      - "18080:18080"
+    volumes:
+      - /app/esl_if/daily:/app/esl_if/daily
+ #     - /home/aims/esl_iflication.yml:/app/config/application.yml
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      TZ: Asia/Seoul
+#      SPRING_DATASOURCE_URL: jdbc:log4jdbc:oracle:thin:@174.100.25.45:1521/SOSS
+#      SPRING_DATASOURCE_URL: jdbc:log4jdbc:oracle:thin:@soss.cizdix8ciqcp.ap-northeast-2.rds.amazonaws.com:1521/ORCL
+#      SPRING_DATASOURCE_USERNAME: IF_ESL_DPTO
+#      SPRING_DATASOURCE_PASSWORD: 17#DEPT_0058
+      SPRING_DATA_MONGODB_URI: mongodb://esl_interface:0hTQos3g+cJjNglMAOGzQg==@10.253.22.99:27017/esl_interface?authSource=admin
+#      SPRING_CONFIG_LOCATION: /app/config/application.yml
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    #environment:
+      #MONGO_INITDB_ROOT_USERNAME: esl_interface
+      #MONGO_INITDB_ROOT_PASSWORD: OhTQos3g+cjJng/M4OGz0g==
+    volumes:
+      - /app/esl_if/mongo/data_v1:/data/db
+    command: mongod --quiet --setParameter wiredTigerConcurrentReadTransactions=128
+    #command: ["mongod", "--quiet", "--setParameter", "wiredTigerConcurrentReadTransactions=128"]
+
+

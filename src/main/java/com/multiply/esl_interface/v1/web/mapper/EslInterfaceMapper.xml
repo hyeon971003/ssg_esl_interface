@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.multiply.esl_interface.v1.web.mapper.EslInterfaceMapper">
+
+    <!-- V_TETPLU_ESL 조회(MongoDB insert용) : 전체 데이터 조회함 -->
+    <select id="selectVTetpluEsl-all" parameterType="com.multiply.esl_interface.v1.web.model.PagingRequest"  resultType="com.multiply.esl_interface.v1.web.model.TetpluEsl" fetchSize="1000">
+        /* EslInterfaceMapper.selectVTetpluEsl */
+        SELECT * FROM (
+        SELECT
+             STORE_CODE
+             , PLU_CODE
+             , PRICE_SECT
+             , START_DATE
+             , END_DATE
+             , MD_CODE
+             , PUM_CODE
+             , EVENT_SECT
+             , CLASS_CODE
+             , TO_CHAR(RAWTOHEX(PLU_NAME)) AS PLU_NAME
+             , CURR_SAL_PRICE
+             , GOODS_SECT
+             , MG_RATE
+             , TAX_FLAG
+             , SYS_DATE
+             , SYS_TIME
+             , TO_CHAR(RAWTOHEX(ORIGIN_NAME)) AS ORIGIN_NAME
+             , NOR_SAL_PRICE
+             , CONTENTS_QTY
+             , TO_CHAR(RAWTOHEX(DISPLAY_UNIT_NAME)) AS DISPLAY_UNIT_NAME
+             , DISPLAY_UNIT_QTY
+             , DEAL_GUBN
+             , ORIGIN_CODE
+             , TO_CHAR(RAWTOHEX(BRAND_NAME)) AS BRAND_NAME
+             , CATE_CODE
+             , TO_CHAR(RAWTOHEX(CATE_NAME)) AS CATE_NAME
+             , MOD_DATE
+             , MOD_TIME
+             , MOD_EMPNO
+             , IF_DATE
+             , IF_TIME
+             , IF_EMPNO
+             , DISPLAY_UNIT_PRICE
+             , TO_CHAR(RAWTOHEX(SELLNG_PNT)) AS SELLNG_PNT
+             , GOOS_AUTH_IMG
+             , WINE_SUGR_CONT
+             , WINE_BODY
+             , WINE_KIND
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_1)) AS WINE_EVAL_1
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_2)) AS WINE_EVAL_2
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_3)) AS WINE_EVAL_3
+             , TO_CHAR(RAWTOHEX(WINE_PLOR)) AS WINE_PLOR
+             , TO_CHAR(RAWTOHEX(WINE_ITEM_KIND)) AS WINE_ITEM_KIND
+             , TO_CHAR(RAWTOHEX(WINE_VINT)) AS WINE_VINT
+             , MOBL_CUP_GOOS_YN
+             , LAYOUT_GUBN_1
+             , LAYOUT_GUBN_2
+             , '' AS PLOR_ORIGIN_NAME
+             , '' AS QR_CODE
+             , CONCAT(CONTENTS_QTY, DISPLAY_UNIT_PRICE) AS CONTENTS_QTY_UNIT
+             <![CDATA[
+             , CASE
+                 WHEN CONTENTS_QTY IS NOT NULL AND CONTENTS_QTY > 0 THEN
+                   CASE
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 100)
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'L' THEN ROUND((CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 1000 * 100)
+                     ELSE NULL
+                    END
+                 ELSE NULL
+                END AS COMBINE_DISPLAY_UNIT_PRICE
+             ]]>
+             , VTRE.GOOS_INFO_IMG
+             , ROW_NUMBER() OVER(ORDER BY PLU_CODE ASC) AS rnum
+        FROM
+            IF_ESL_DPT0.V_TETPLU_ESL VTRE
+        WHERE STORE_CODE = '14'
+        ) WHERE rnum <![CDATA[ >= ]]> ${startNum} and rnum <![CDATA[ <= ]]> ${endNum}
+
+    </select>
+    <!-- V_TETPLU_ESL 조회(MongoDB insert용) : 당일 데이터 조회함 -->
+    <select id="selectVTetpluEsl" parameterType="com.multiply.esl_interface.v1.web.model.PagingRequest"  resultType="com.multiply.esl_interface.v1.web.model.TetpluEsl" fetchSize="1000">
+        /* EslInterfaceMapper.selectVTetpluEsl */
+        SELECT * FROM (
+        SELECT
+             STORE_CODE
+             , PLU_CODE
+             , PRICE_SECT
+             , START_DATE
+             , END_DATE
+             , MD_CODE
+             , PUM_CODE
+             , EVENT_SECT
+             , CLASS_CODE
+             , TO_CHAR(RAWTOHEX(PLU_NAME)) AS PLU_NAME
+             , CURR_SAL_PRICE
+             , GOODS_SECT
+             , MG_RATE
+             , TAX_FLAG
+             , SYS_DATE
+             , SYS_TIME
+             , TO_CHAR(RAWTOHEX(ORIGIN_NAME)) AS ORIGIN_NAME
+             , NOR_SAL_PRICE
+             , CONTENTS_QTY
+             , TO_CHAR(RAWTOHEX(DISPLAY_UNIT_NAME)) AS DISPLAY_UNIT_NAME
+             , DISPLAY_UNIT_QTY
+             , DEAL_GUBN
+             , ORIGIN_CODE
+             , TO_CHAR(RAWTOHEX(BRAND_NAME)) AS BRAND_NAME
+             , CATE_CODE
+             , TO_CHAR(RAWTOHEX(CATE_NAME)) AS CATE_NAME
+             , MOD_DATE
+             , MOD_TIME
+             , MOD_EMPNO
+             , IF_DATE
+             , IF_TIME
+             , IF_EMPNO
+             , DISPLAY_UNIT_PRICE
+             , TO_CHAR(RAWTOHEX(SELLNG_PNT)) AS SELLNG_PNT
+             , GOOS_AUTH_IMG
+             , WINE_SUGR_CONT
+             , WINE_BODY
+             , WINE_KIND
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_1)) AS WINE_EVAL_1
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_2)) AS WINE_EVAL_2
+             , TO_CHAR(RAWTOHEX(WINE_EVAL_3)) AS WINE_EVAL_3
+             , TO_CHAR(RAWTOHEX(WINE_PLOR)) AS WINE_PLOR
+             , TO_CHAR(RAWTOHEX(WINE_ITEM_KIND)) AS WINE_ITEM_KIND
+             , TO_CHAR(RAWTOHEX(WINE_VINT)) AS WINE_VINT
+             , MOBL_CUP_GOOS_YN
+             , LAYOUT_GUBN_1
+             , LAYOUT_GUBN_2
+             , '' AS PLOR_ORIGIN_NAME
+             , '' AS QR_CODE
+             , CONCAT(CONTENTS_QTY, DISPLAY_UNIT_PRICE) AS CONTENTS_QTY_UNIT
+             <![CDATA[
+             , CASE
+                 WHEN CONTENTS_QTY IS NOT NULL AND CONTENTS_QTY > 0 THEN
+                   CASE
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 100)
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'L' THEN ROUND((CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 1000 * 100)
+                     ELSE NULL
+                    END
+                 ELSE NULL
+                END AS COMBINE_DISPLAY_UNIT_PRICE
+             ]]>
+             , VTRE.GOOS_INFO_IMG
+             , ROW_NUMBER() OVER(ORDER BY PLU_CODE ASC) AS rnum
+        FROM
+            IF_ESL_DPT0.V_TETPLU_ESL VTRE
+        WHERE STORE_CODE = '14'
+          AND MOD_DATE = TO_CHAR(SYSDATE, 'yyyymmdd')
+        ) WHERE rnum <![CDATA[ >= ]]> ${startNum} and rnum <![CDATA[ <= ]]> ${endNum}
+
+    </select>
+
+    <!-- V_TETRPL_ESL 조회(MongoDB insert용) -->
+    <select id="selectVTetrplEsl" resultType="com.multiply.esl_interface.v1.web.model.TetrplEsl">
+        /* EslInterfaceMapper.selectVTetrplEsl */
+        SELECT
+             VTRE.STORE_CODE
+             , VTRE.MNT_DATE
+             , VTRE.MNT_TIME
+             , VTRE.PLU_CODE
+             , VTRE.PRICE_SECT
+             , VTRE.START_DATE
+             , VTRE.END_DATE
+             , VTRE.MD_CODE
+             , VTRE.PUM_CODE
+             , VTRE.EVENT_SECT
+             , VTRE.CLASS_CODE
+             , TO_CHAR(RAWTOHEX(VTRE.PLU_NAME)) AS PLU_NAME
+             , VTRE.CURR_SAL_PRICE
+             , VTRE.GOODS_SECT
+             , VTRE.MG_RATE
+             , VTRE.TAX_FLAG
+             , VTRE.MNT_EMPNO
+             , VTRE.SYS_DATE
+             , VTRE.SYS_TIME
+             , TO_CHAR(RAWTOHEX(VTRE.ORIGIN_NAME)) AS ORIGIN_NAME
+             , VTRE.NOR_SAL_PRICE
+             , VTRE.CONTENTS_QTY
+             , TO_CHAR(RAWTOHEX(VTRE.DISPLAY_UNIT_NAME)) AS DISPLAY_UNIT_NAME
+             , VTRE.DISPLAY_UNIT_QTY
+             , TO_CHAR(RAWTOHEX(VTRE.BRAND_NAME)) AS BRAND_NAME
+             , TO_CHAR(RAWTOHEX(VTRE.SELLNG_PNT)) AS SELLNG_PNT
+             , VTRE.GOOS_AUTH_IMG
+             , VTRE.WINE_SUGR_CONT
+             , VTRE.WINE_BODY
+             , VTRE.WINE_KIND
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_1)) AS WINE_EVAL_1
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_2)) AS WINE_EVAL_2
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_3)) AS WINE_EVAL_3
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_PLOR)) AS WINE_PLOR
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_ITEM_KIND)) AS WINE_ITEM_KIND
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_VINT)) AS WINE_VINT
+             , VTRE.MOBL_CUP_GOOS_YN
+             , VTRE.LAYOUT_GUBN_1
+             , VTRE.LAYOUT_GUBN_2
+             , VTRE.GOOS_INFO_IMG
+        FROM
+            IF_ESL_DPT0.V_TETRPL_ESL VTRE
+        WHERE VTRE.STORE_CODE = '14'
+          AND LPAD(TO_NUMBER(VTRE.MNT_TIME), 6, 0) BETWEEN
+            LPAD(TO_NUMBER(TO_CHAR(TRUNC(SYSDATE, 'MI') - INTERVAL '30' MINUTE, 'HH24MI') || '00'), 6, 0) AND
+            LPAD(TO_NUMBER(TO_CHAR(SYSDATE, 'HH24MISS')), 6, 0)
+    </select>
+
+    <!-- V_TETRPL_ESL 조회(Aims insert용) -->
+    <select id="selectVTetrplEslA" resultType="com.multiply.esl_interface.v1.web.model.TetrplEslA">
+        /* EslInterfaceMapper.selectVTetrplEslA */
+        SELECT
+            VTRE.STORE_CODE
+             , VTRE.PLU_CODE
+             , VTRE.PRICE_SECT
+             , VTRE.START_DATE
+             , VTRE.END_DATE
+             , VTRE.MD_CODE
+             , VTRE.PUM_CODE
+             , VTRE.EVENT_SECT
+             , VTRE.CLASS_CODE
+             , TO_CHAR(RAWTOHEX(VTRE.PLU_NAME)) AS PLU_NAME
+             , VTRE.CURR_SAL_PRICE
+             , VTRE.GOODS_SECT
+             , VTRE.MG_RATE
+             , VTRE.TAX_FLAG
+             , VTRE.SYS_DATE
+             , VTRE.SYS_TIME
+             , TO_CHAR(RAWTOHEX(VTRE.ORIGIN_NAME)) AS ORIGIN_NAME
+             , VTRE.NOR_SAL_PRICE
+             , VTRE.CONTENTS_QTY
+             , TO_CHAR(RAWTOHEX(VTRE.DISPLAY_UNIT_NAME)) AS DISPLAY_UNIT_NAME
+             , VTRE.DISPLAY_UNIT_QTY
+             , (SELECT DEAL_GUBN FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS DEAL_GUBN
+             , (SELECT ORIGIN_CODE FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS ORIGIN_CODE
+             , TO_CHAR(RAWTOHEX(VTRE.BRAND_NAME)) AS BRAND_NAME
+             , (SELECT CATE_CODE FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS CATE_CODE
+             , TO_CHAR(RAWTOHEX((SELECT CATE_NAME FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14'))) AS CATE_NAME
+             , (SELECT MOD_DATE FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS MOD_DATE
+             , (SELECT MOD_TIME FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS MOD_TIME
+             , (SELECT MOD_EMPNO FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS MOD_EMPNO
+             , (SELECT IF_DATE FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS IF_DATE
+             , (SELECT IF_TIME FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS IF_TIME
+             , (SELECT IF_EMPNO FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS IF_EMPNO
+             , (SELECT DISPLAY_UNIT_PRICE FROM V_TETPLU_ESL WHERE PLU_CODE = VTRE.PLU_CODE AND STORE_CODE = '14') AS DISPLAY_UNIT_PRICE
+             , TO_CHAR(RAWTOHEX(VTRE.SELLNG_PNT)) AS SELLNG_PNT
+             , VTRE.GOOS_AUTH_IMG
+             , VTRE.WINE_SUGR_CONT
+             , VTRE.WINE_BODY
+             , VTRE.WINE_KIND
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_1)) AS WINE_EVAL_1
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_2)) AS WINE_EVAL_2
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_EVAL_3)) AS WINE_EVAL_3
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_PLOR)) AS WINE_PLOR
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_ITEM_KIND)) AS WINE_ITEM_KIND
+             , TO_CHAR(RAWTOHEX(VTRE.WINE_VINT)) AS WINE_VINT
+             , VTRE.MOBL_CUP_GOOS_YN
+             , VTRE.LAYOUT_GUBN_1
+             , VTRE.LAYOUT_GUBN_2
+             , '' AS PLOR_ORIGIN_NAME
+             , CONCAT(VTRE.CONTENTS_QTY, VTRE.DISPLAY_UNIT_NAME) AS CONTENTS_QTY_UNIT
+             , '' AS QR_CODE
+             , CASE
+                   WHEN VTRE.CONTENTS_QTY IS NOT NULL AND VTRE.CONTENTS_QTY > 0 THEN
+                       CASE
+                           WHEN TRIM(VTRE.DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((VTRE.CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 100)
+                           WHEN TRIM(VTRE.DISPLAY_UNIT_NAME) = 'L' THEN ROUND((VTRE.CURR_SAL_PRICE/VTRE.CONTENTS_QTY) * 1000 * 100)
+                           ELSE NULL
+                        END
+                   ELSE NULL
+               END AS COMBINE_DISPLAY_UNIT_PRICE
+             , VTRE.GOOS_INFO_IMG AS GOOS_INFO_IMG
+        FROM
+            IF_ESL_DPT0.V_TETRPL_ESL VTRE
+        WHERE VTRE.STORE_CODE = '14'
+          AND LPAD(TO_NUMBER(VTRE.MNT_TIME), 6, 0) BETWEEN
+            LPAD(TO_NUMBER(TO_CHAR(TRUNC(SYSDATE, 'MI') - INTERVAL '30' MINUTE, 'HH24MI') || '00'), 6, 0) AND
+            LPAD(TO_NUMBER(TO_CHAR(SYSDATE, 'HH24MISS')), 6, 0)
+    </select>
+
+</mapper>
