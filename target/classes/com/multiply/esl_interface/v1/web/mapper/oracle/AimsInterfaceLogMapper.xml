@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.multiply.esl_interface.v1.web.mapper.oracle.AimsInterfaceLogMapper">
+    <insert id="save" parameterType="com.multiply.esl_interface.v1.web.model.AimsInterfaceLog">
+        INSERT
+            INTO
+        shinsegaesl.AIMS_INTERFACE_LOG(
+          ID
+        , FAILED_PLU_CODES
+        , IF_DATE
+        , IF_FAIL_CNT
+        , IF_RESULT
+        , IF_SUCCESS_CNT
+        , IF_TIME
+        , IF_TOTAL_CNT
+        , IF_TYPE)
+        VALUES
+        (#{id}
+        , #{failedPluCodes}
+        , #{ifDate}
+        , #{ifFailCnt}
+        , #{ifResult}
+        , #{ifSuccessCnt}
+        , #{ifTime}
+        , #{ifTotalCnt}
+        , #{ifType})
+    </insert>
+</mapper>

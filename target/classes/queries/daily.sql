@@ -1,0 +1,62 @@
+SELECT STR_CD AS STORE_CODE
+      , LPAD(PIPD_CD, 13, '0') AS PLU_CODE -- PLU_CODE를 13자리로 패딩
+      , NRM_EVN_DVS_CD AS PRICE_SECT
+      , PRC_BGN_YMD AS START_DATE
+      , PRC_END_YMD AS END_DATE
+      , LPAD(MD_CD, 6, '0')      AS MD_CODE -- MD_CODE를 6자리로 패딩
+      , LPAD(PDCT_CL_CD, 4, '0') AS PUM_CODE -- PUM_CODE를 4자리로 패딩
+      , EVN_DVS_CD AS EVENT_SECT
+      , CPCO_CD AS CLASS_CODE
+      , REPLACE(REPLACE(REPLACE(PIPD_NM, '\n', ' '), '\t', ' '), ';', ' ') AS PLU_NAME  /* 오류를 일으키는 개행 및 특수문자 제거 */
+      , NOW_SPRC_UPRC AS CURR_SAL_PRICE
+      , PIPD_DVS_CD AS GOODS_SECT
+      , MGRT AS MG_RATE
+      , TAX_DVS_CD AS TAX_FLAG
+      , DATE_FORMAT(REG_DTM ,'%Y%m%d') AS SYS_DATE
+      , DATE_FORMAT(REG_DTM, '%H%i')  AS SYS_TIME
+      , OPL_NM AS ORIGIN_NAME
+      , NRM_SPRC_UPRC AS NOR_SAL_PRICE
+      , PDCT_TOT_CPC AS CONTENTS_QTY
+      , INDI_UNT_NM AS DISPLAY_UNIT_NAME
+      , INDI_UNT_QTY AS DISPLAY_UNIT_QTY
+      , DLNG_SHPE_CD AS DEAL_GUBN
+      , OPL_CD AS ORIGIN_CODE
+      , PDCT_BRD_NM AS BRAND_NAME
+      , ESL_CTG_CD AS CATE_CODE
+      , ESL_CTG_NM AS CATE_NAME
+      , DATE_FORMAT(UPD_DTM ,'%Y%m%d') AS MOD_DATE
+      , DATE_FORMAT(UPD_DTM, '%H%i')  AS MOD_TIME
+      , ITF_HNDR_EMPNO AS MOD_EMPNO
+      , ITF_YMD AS IF_DATE
+      , ITF_TM AS IF_TIME
+      , ITF_HNDR_EMPNO AS IF_EMPNO
+      , NOW_SPRC_UPRC AS DISPLAY_UNIT_PRICE
+      , REPLACE(REPLACE(REPLACE(ESL_SLPNT_CNTN, '\n', ' '), '\t', ' '), ';', ' ') AS SELLNG_PNT /* 오류를 일으키는 개행 및 특수문자 제거 */
+      , IMG_YN AS GOOS_AUTH_IMG
+      , WINE_SGCN_DVS_CD AS WINE_SUGR_CONT
+      , WINE_WNBD_DVS_CD AS WINE_BODY
+      , WINE_TPE_CD AS WINE_KIND
+      , REPLACE(REPLACE(REPLACE(WINE_EVL_CNTN1, '\n', ' '), '\t', ' '), ';', ' ') AS WINE_EVAL_1 /*오류를 일으키는 개행 및 특수문자 제거 */
+      , WINE_EVL_CNTN2 AS WINE_EVAL_2
+      , WINE_EVL_CNTN3 AS WINE_EVAL_3
+      , OPL_NM AS WINE_PLOR
+      , WINE_PDTY_CNTN AS WINE_ITEM_KIND
+      , WINE_VNTG_CNTN AS WINE_VINT
+      , MBLE_CPN_PDCT_YN AS MOBL_CUP_GOOS_YN
+      , ESL_LYT_DVS_CD1 AS LAYOUT_GUBN_1
+      , ESL_LYT_DVS_CD2 AS LAYOUT_GUBN_2
+      , '' AS QR_CODE
+      , '' AS PLOR_ORIGIN_NAME
+      , CONCAT(PDCT_TOT_CPC, INDI_UNT_NM) AS CONTENTS_QTY_UNIT -- 총 용량과 단위명을 결합
+      , CASE
+            WHEN PDCT_TOT_CPC IS NOT NULL AND PDCT_TOT_CPC > 0 THEN
+                  CASE
+                        WHEN TRIM(INDI_UNT_NM) = 'ml' THEN ROUND((NOW_SPRC_UPRC/PDCT_TOT_CPC) * 100)
+                        WHEN TRIM(INDI_UNT_NM) = 'l' THEN ROUND((NOW_SPRC_UPRC/PDCT_TOT_CPC) * 1000 * 100)
+                        ELSE NULL
+                  END
+            ELSE NULL
+      END AS COMBINE_DISPLAY_UNIT_PRICE -- 표시단위별 가격 계산
+FROM PR_ESL_PIPD_I -- 기존에는 뷰테이블에서 가져왔으나 샘플 데이터를 뽑은 테이블명으로 교체 요망
+WHERE STR_CD = '14' AND DATE_FORMAT(CURDATE(), '%Y%m%d') -- 오늘치 데이터
+ORDER BY PIPD_CD ASC;

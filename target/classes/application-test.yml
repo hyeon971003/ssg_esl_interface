@@ -1,0 +1,31 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: esl_interface
+  docker:
+    compose:
+      enabled: false
+  data:
+    mongodb:
+      database: esl_interface
+      host: 43.201.102.109
+      port: 27017
+      user: esl_interface
+      password: 0hTQos3g+cJjNglMAOGzQg==
+  datasource:
+      url: jdbc:oracle:thin:@database-2.cizdix8ciqcp.ap-northeast-2.rds.amazonaws.com:1521/ORCL
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      username: 'multiply'
+      password: 'ajfxlvmffkdl12!'
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+server:
+  port: 18080

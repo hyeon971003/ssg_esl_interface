@@ -4,15 +4,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 @AllArgsConstructor
 @Builder
 @Data
-@Document(collection = "tetplu_esl")
-@Schema(description = "V_TETPLU_ESL(MongoDB insert용 오라클 수신) 모델")
+@Schema(description = "일매가")
 public class TetpluEsl {
-
     private String storeCode;
     private String pluCode;
     private String priceSect;

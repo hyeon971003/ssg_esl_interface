@@ -1,21 +1,15 @@
 package com.multiply.esl_interface;
 
-import com.multiply.esl_interface.v1.global.common.converter.EncodingConverter;
-import jakarta.annotation.PostConstruct;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.config.EnableMongoAuditing;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.util.TimeZone;
-
+@EnableJpaRepositories(basePackages = "com.multiply.esl_interface.v1.web.repository") // Repository 경로
+@EnableTransactionManagement
+@EnableScheduling // 스케줄러 사용 시 필요
 @SpringBootApplication
-@ComponentScan("com.multiply.esl_interface.v1")
-@EnableMongoRepositories(basePackages = "com.multiply.esl_interface.v1.web.repository")
-@EnableMongoAuditing
-@EnableScheduling
 public class EslInterfaceApplication {
 
 	public static void main(String[] args) {

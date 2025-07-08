@@ -1,19 +1,28 @@
 package com.multiply.esl_interface.v1.web.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 @AllArgsConstructor
 @Builder
 @Data
-@Document(collection = "tetrpl_esl")
-@Schema(description = "V_TETRPL_ESL(MongoDB insert용 오라클 수신) 모델")
+@Table(name = "tetrpl_esl")
+@Schema(description = "V_TETRPL_ESL(몽고 insert용 오라클 수신) 모델")
+@Getter
+@Setter
+@Entity
 public class TetrplEsl {
+    public TetrplEsl() {
+        // 기본 생성자
+    }
 
     private String storeCode;
     private String mntDate;
     private String mntTime;
+    @Id
     private String pluCode;
     private String priceSect;
     private String startDate;

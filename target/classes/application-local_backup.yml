@@ -1,0 +1,65 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: esl_interface
+  jackson:
+    time-zone: Asia/Seoul
+  data:
+#    mongodb:
+#      host: 10.253.22.112
+#      port: 27017
+#      user: esl_interface
+#      password: 0hTQos3g+cJjNglMAOGzQg==
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      user: esl_interface
+      password: ajfxlvmffkdl12!
+  datasource:
+    url: jdbc:oracle:thin:@localhost:1521:XE
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    username: 'system'
+    password: 'oracle'
+    hikari:
+      jdbc-url: jdbc:oracle:thin:@localhost:1521:XE
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      data-source-properties:
+        user: 'system'
+        password: 'oracle'
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+  ssg-depart-datasource:
+    hikari:
+      jdbc-url: jdbc:postgresql://127.0.0.1:9010/ssg_depart
+      driver-class-name: org.postgresql.Driver
+      data-source-properties:
+        user: ssg_depart
+        password: !2ssg_depart#4
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+server:
+  port: 18080
+  schedule:
+    receiveTetpluEsl.cron: 0 */10 * * * *
+    receiveVTetrplEsl.cron: 0 */5 * * * *
+
+api:
+  url: https://192.168.0.10:9002/
+  store: TEST001
+  company: TEST001
+
+file:
+  path: /app/esl_if/daily/
+  columns: STORE_CODE,PLU_CODE,PRICE_SECT,START_DATE,END_DATE,MD_CODE,PUM_CODE,EVENT_SECT,CLASS_CODE,PLU_NAME,CURR_SAL_PRICE,GOODS_SECT,MG_RATE,TAX_FLAG,SYS_DATE,SYS_TIME,ORIGIN_NAME,NOR_SAL_PRICE,CONTENTS_QTY,DISPLAY_UNIT_NAME,DISPLAY_UNIT_QTY,DEAL_GUBN,ORIGIN_CODE,BRAND_NAME,CATE_CODE,CATE_NAME,MOD_DATE,MOD_TIME,MOD_EMPNO,IF_DATE,IF_TIME,IF_EMPNO,DISPLAY_UNIT_PRICE,SELLNG_PNT,GOOS_AUTH_IMG,WINE_SUGR_CONT,WINE_BODY,WINE_KIND,WINE_EVAL_1,WINE_EVAL_2,WINE_EVAL_3,WINE_PLOR,WINE_ITEM_KIND,WINE_VINT,MOBL_CUP_GOOS_YN,LAYOUT_GUBN_1,LAYOUT_GUBN_2,QR_CODE,CONTENTS_QTY_UNIT,COMBINE_DISPLAY_UNIT_PRICE,DISPLAY_TYPE,GOOS_INFO1,GOOS_INFO2
+
+logging:
+  level:
+    root: info
+    com.multiply.esl_interface: debug

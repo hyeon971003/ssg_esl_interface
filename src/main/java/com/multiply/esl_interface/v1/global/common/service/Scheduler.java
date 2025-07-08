@@ -17,16 +17,16 @@ public class Scheduler {
 
     @Scheduled(cron = "${server.schedule.receiveTetpluEsl.cron}") // 매일 6시 10분
     public void receiveVTetpluEslSchedule() {
-        if (STATE_TETPLU != null) return;
-
-        STATE_TETPLU = "1";
-        eslInterfaceService.receiveTetpluEslEtl();
-        STATE_TETPLU = null;
+//        if (STATE_TETPLU != null) return;
+//z
+//        STATE_TETPLU = "1";
+//        eslInterfaceService.receiveTetpluEslEtl();
+//        STATE_TETPLU = null;
     }
 
     @Scheduled(cron = "${server.schedule.receiveVTetrplEsl.cron}") // 0,30
     public void receiveVTetrplEslSchedule() {
-        eslInterfaceService.receiveVTetrplEslEtl();
+        //eslInterfaceService.receiveVTetrplEslEtl();
     }
 
 }

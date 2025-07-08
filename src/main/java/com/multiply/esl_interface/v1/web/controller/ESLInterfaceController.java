@@ -1,6 +1,8 @@
 package com.multiply.esl_interface.v1.web.controller;
 
 import com.multiply.esl_interface.v1.global.common.dto.ApiResponse;
+import com.multiply.esl_interface.v1.web.model.TetpluEsl;
+import com.multiply.esl_interface.v1.web.model.TetrplEslA;
 import com.multiply.esl_interface.v1.web.service.EslInterfaceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Parameter;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -76,6 +79,17 @@ public class ESLInterfaceController {
     @PostMapping(value = "/test/rpl")
     public ResponseEntity<String> sendTetrplEslTest() throws NoSuchAlgorithmException {
         eslInterfaceService.receiveVTetrplEsl();
+        return ResponseEntity.ok().body(null);
+    }
+
+    //테스트 api
+    @Parameter(name = "", hidden = true)
+    @SecurityRequirement(name = "Basic")
+    @GetMapping(value = "/test/rpl/select")
+    public ResponseEntity<String> test() {
+        List<TetpluEsl> test = eslInterfaceService.test();
+        log.info("test data1       : " + test.get(0).getPluName().toString());
+        log.info("test data2       : " + test.get(1));
         return ResponseEntity.ok().body(null);
     }
 

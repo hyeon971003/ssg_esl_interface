@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.multiply.esl_interface.v1.web.mapper.oracle.SsgDepartMapper">
+
+    <!-- TETPLU_ESL 조회 : 전체 데이터 조회함 -->
+    <select id="selectVTetpluEslAll" parameterType="java.util.Map"  resultType="com.multiply.esl_interface.v1.web.model.TetpluEsl" fetchSize="1000">
+        /* PostgreMapper.selectVTetpluEslAll */
+        SELECT
+             STORE_CODE
+             , PLU_CODE
+             , PRICE_SECT
+             , START_DATE
+             , END_DATE
+             , MD_CODE
+             , PUM_CODE
+             , EVENT_SECT
+             , CLASS_CODE
+             , PLU_NAME
+             , CURR_SAL_PRICE
+             , GOODS_SECT
+             , MG_RATE
+             , TAX_FLAG
+             , SYS_DATE
+             , SYS_TIME
+             , ORIGIN_NAME
+             , NOR_SAL_PRICE
+             , CONTENTS_QTY
+             , DISPLAY_UNIT_NAME
+             , DISPLAY_UNIT_QTY
+             , DEAL_GUBN
+             , ORIGIN_CODE
+             , BRAND_NAME
+             , CATE_CODE
+             , CATE_NAME
+             , MOD_DATE
+             , MOD_TIME
+             , '' as MOD_EMPNO
+             , IF_DATE
+             , IF_TIME
+             , IF_EMPNO
+             , DISPLAY_UNIT_PRICE
+             , SELLING_PNT as SELLNG_PNT
+             , GOOS_AUTH_IMG
+             , WINE_SUGR_CONT
+             , WINE_BODY
+             , WINE_KIND
+             , WINE_EVAL_1
+             , WINE_EVAL_2
+             , WINE_EVAL_3
+             , WINE_PLOR
+             , WINE_ITEM_KIND
+             , WINE_VINT
+             , MOBL_CUP_GOOS_YN
+             , LAYOUT_GUBN_1
+             , LAYOUT_GUBN_2
+             , '' AS PLOR_ORIGIN_NAME
+             , '' AS QR_CODE
+             , CONCAT(CONTENTS_QTY, DISPLAY_UNIT_PRICE) AS CONTENTS_QTY_UNIT
+             <![CDATA[
+             , CASE
+                 WHEN CONTENTS_QTY IS NOT NULL AND CONTENTS_QTY > 0 THEN
+                   CASE
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((CURR_SAL_PRICE/TP.CONTENTS_QTY) * 100)
+                     WHEN TRIM(DISPLAY_UNIT_NAME) = 'L' THEN ROUND((CURR_SAL_PRICE/TP.CONTENTS_QTY) * 1000 * 100)
+                     ELSE NULL
+                    END
+                 ELSE NULL
+                END AS COMBINE_DISPLAY_UNIT_PRICE
+             ]]>
+             , TP.GOOS_INFO_IMG
+        FROM
+            TETPLU_ESL TP
+        WHERE STORE_CODE IN
+          <foreach collection="strCodes" item="code" index="index" separator="," open="(" close=")">#{code}</foreach>
+        ORDER BY PLU_CODE asc
+        LIMIT ${count} OFFSET ${startNum}
+    </select>
+    <!-- TETPLU_ESL 조회 : 당일 데이터 조회함 -->
+    <select id="selectVTetpluEsl" parameterType="java.util.Map"  resultType="com.multiply.esl_interface.v1.web.model.TetpluEsl" fetchSize="1000">
+        /* PostgreMapper.selectVTetpluEsl */
+        SELECT
+            STORE_CODE
+            , PLU_CODE
+            , PRICE_SECT
+            , START_DATE
+            , END_DATE
+            , MD_CODE
+            , PUM_CODE
+            , EVENT_SECT
+            , CLASS_CODE
+            , PLU_NAME
+            , CURR_SAL_PRICE
+            , GOODS_SECT
+            , MG_RATE
+            , TAX_FLAG
+            , SYS_DATE
+            , SYS_TIME
+            , ORIGIN_NAME
+            , NOR_SAL_PRICE
+            , CONTENTS_QTY
+            , DISPLAY_UNIT_NAME
+            , DISPLAY_UNIT_QTY
+            , DEAL_GUBN
+            , ORIGIN_CODE
+            , BRAND_NAME
+            , CATE_CODE
+            , CATE_NAME
+            , MOD_DATE
+            , MOD_TIME
+            , '' AS MOD_EMPNO
+            , IF_DATE
+            , IF_TIME
+            , IF_EMPNO
+            , DISPLAY_UNIT_PRICE
+            , SELLING_PNT AS SELLNG_PNT
+            , GOOS_AUTH_IMG
+            , WINE_SUGR_CONT
+            , WINE_BODY
+            , WINE_KIND
+            , WINE_EVAL_1
+            , WINE_EVAL_2
+            , WINE_EVAL_3
+            , WINE_PLOR
+            , WINE_ITEM_KIND
+            , WINE_VINT
+            , MOBL_CUP_GOOS_YN
+            , LAYOUT_GUBN_1
+            , LAYOUT_GUBN_2
+            , '' AS PLOR_ORIGIN_NAME
+            , '' AS QR_CODE
+            , CONCAT(CONTENTS_QTY, DISPLAY_UNIT_PRICE) AS CONTENTS_QTY_UNIT
+            <![CDATA[
+                 , CASE
+                     WHEN CONTENTS_QTY IS NOT NULL AND CONTENTS_QTY > 0 THEN
+                       CASE
+                         WHEN TRIM(DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((CURR_SAL_PRICE/TP.CONTENTS_QTY) * 100)
+                         WHEN TRIM(DISPLAY_UNIT_NAME) = 'L' THEN ROUND((CURR_SAL_PRICE/TP.CONTENTS_QTY) * 1000 * 100)
+                         ELSE NULL
+                        END
+                     ELSE NULL
+                    END AS COMBINE_DISPLAY_UNIT_PRICE
+                 ]]>
+            , TP.GOOS_INFO_IMG
+        FROM
+        TETPLU_ESL TP
+        WHERE STORE_CODE IN
+        <foreach collection="strCodes" item="code" index="index" separator="," open="(" close=")">#{code}</foreach>
+        AND TP.MOD_DATE = TO_CHAR(NOW(), 'YYYYMMDD')
+        ORDER BY PLU_CODE ASC
+        LIMIT ${startNum}, ${count}
+    </select>
+
+    <!-- V_TETRPL_ESL 조회(Aims insert용) -->
+    <select id="selectVTetrplEslA" parameterType="java.util.Map"  resultType="com.multiply.esl_interface.v1.web.model.TetrplEslA">
+        /* PostgreMapper.selectVTetrplEslA */
+        SELECT
+            TR.STORE_CODE
+             , TR.PLU_CODE
+             , TR.PRICE_SECT
+             , TR.START_DATE
+             , TR.END_DATE
+             , TR.MD_CODE
+             , TR.PUM_CODE
+             , TR.EVENT_SECT
+             , TR.CLASS_CODE
+             , TR.PLU_NAME
+             , TR.CURR_SAL_PRICE
+             , TR.GOODS_SECT
+             , TR.MG_RATE
+             , TR.TAX_FLAG
+             , TR.SYS_DATE
+             , TR.SYS_TIME
+             , TR.ORIGIN_NAME
+             , TR.NOR_SAL_PRICE
+             , TR.CONTENTS_QTY
+             , TR.DISPLAY_UNIT_NAME
+             , TR.DISPLAY_UNIT_QTY
+             , TP.DEAL_GUBN
+             , TP.ORIGIN_CODE
+             , TR.BRAND_NAME
+             , TP.CATE_CODE
+             , TP.CATE_NAME
+             , TP.MOD_DATE
+             , TP.MOD_TIME
+             , '' as MOD_EMPNO
+             , TP.IF_DATE
+             , TP.IF_TIME
+             , TP.IF_EMPNO
+             , TP.DISPLAY_UNIT_PRICE
+             , TR.SELLING_PNT as SELLNG_PNT
+             , TR.GOOS_AUTH_IMG
+             , TR.WINE_SUGR_CONT
+             , TR.WINE_BODY
+             , TR.WINE_KIND
+             , TR.WINE_EVAL_1
+             , TR.WINE_EVAL_2
+             , TR.WINE_EVAL_3
+             , TR.WINE_PLOR
+             , TR.WINE_ITEM_KIND
+             , TR.WINE_VINT
+             , TR.MOBL_CUP_GOOS_YN
+             , TR.LAYOUT_GUBN_1
+             , TR.LAYOUT_GUBN_2
+             , '' AS PLOR_ORIGIN_NAME
+             , CONCAT(TR.CONTENTS_QTY, TR.DISPLAY_UNIT_NAME) AS CONTENTS_QTY_UNIT
+             , '' AS QR_CODE
+             <![CDATA[
+             , CASE
+                   WHEN TR.CONTENTS_QTY IS NOT NULL AND TR.CONTENTS_QTY > 0 THEN
+                       CASE
+                           WHEN TRIM(TR.DISPLAY_UNIT_NAME) = 'ml' THEN ROUND((TR.CURR_SAL_PRICE/TR.CONTENTS_QTY) * 100)
+                           WHEN TRIM(TR.DISPLAY_UNIT_NAME) = 'L' THEN ROUND((TR.CURR_SAL_PRICE/TR.CONTENTS_QTY) * 1000 * 100)
+                           ELSE NULL
+                        END
+                   ELSE NULL
+               END AS COMBINE_DISPLAY_UNIT_PRICE
+             ]]>
+             , TR.GOOS_INFO_IMG AS GOOS_INFO_IMG
+        FROM
+            TETRPL_ESL TR
+        LEFT JOIN TETPLU_ESL TP ON TP.PLU_CODE = TR.PLU_CODE and TP.STORE_CODE = TR.STORE_CODE 
+        WHERE TR.STORE_CODE IN
+          <foreach collection="strCodes" item="code" index="index" separator="," open="(" close=")">#{code}</foreach>
+            AND TR.MNT_DATE = DATE_FORMAT(NOW(), '%Y%m%d')
+            AND TR.MNT_TIME <![CDATA[ >= ]]> DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 30 MINUTE), '%H%i%s')
+    </select>
+
+</mapper>
