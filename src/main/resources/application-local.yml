@@ -35,6 +35,13 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
+  ssg-depart-datasource:
+    hikari:
+      jdbc-url: jdbc:postgresql://127.0.0.1:9010/ssg_depart
+      driver-class-name: org.postgresql.Driver
+      data-source-properties:
+        user: ssg_depart
+        password: !2ssg_depart#4
 mybatis:
   mapper-locations: classpath:mapper/*.xml
 server:

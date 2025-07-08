@@ -5,7 +5,7 @@
 
     <groupId>com.multiply</groupId>
     <artifactId>esl_interface</artifactId>
-    <version>250223</version>
+    <version>etl_250325</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -119,6 +119,12 @@
             <version>8.4.0</version>
             <scope>runtime</scope>
         </dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.7.3</version>
+			<scope>runtime</scope>
+		</dependency>
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-starter-core</artifactId>

@@ -1,7 +1,9 @@
 package com.multiply.esl_interface.v1.web.service;
 
 import com.multiply.esl_interface.v1.global.common.converter.EncodingConverter;
-import com.multiply.esl_interface.v1.web.mapper.EslInterfaceMapper;
+import com.multiply.esl_interface.v1.web.mapper.aimscore.AimsCoreMapper;
+import com.multiply.esl_interface.v1.web.mapper.oracle.EslInterfaceMapper;
+import com.multiply.esl_interface.v1.web.mapper.ssgdepart.SsgDepartMapper;
 import com.multiply.esl_interface.v1.web.model.*;
 import com.multiply.esl_interface.v1.web.repository.AimsInterfaceLogRepository;
 import com.multiply.esl_interface.v1.web.repository.TetpluEslRepository;
@@ -35,7 +37,9 @@ import java.util.*;
 @Component
 public class EslInterfaceService {
 
+    private final AimsCoreMapper aimscoreMapper;
     private final EslInterfaceMapper eslInterfaceMapper;
+    private final SsgDepartMapper ssgdepartMapper;
     private final AimsInterfaceLogRepository aimsInterfaceLogRepository;
     private final TetpluEslRepository tetpluEslRepository;
     private final TetrplEslRepository tetrplEslRepository;
@@ -472,6 +476,409 @@ public class EslInterfaceService {
                 } catch (Exception e) {
                     logger.error("receiveVTetrplEsl-AIMS_INTERFACE_LOG insert Exception 발생: {}", e.getMessage(), e);
                 }
+            }
+
+        } catch (IOException e) {
+            logger.error("receiveVTetrplEsl-IOException 발생: {}", e.getMessage(), e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("receiveVTetrplEsl-NoSuchAlgorithmException 발생: {}", e.getMessage(), e);
+        } catch (KeyManagementException e) {
+            logger.error("receiveVTetrplEsl-KeyManagementException 발생: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("receiveVTetrplEsl-Exception 발생: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 일반 데이터(TETPLU_ESL) 수신 (ETL)
+     * @param
+     * @return
+     * @throws
+     */
+    public void receiveTetpluEslEtl() {
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType){
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        } };
+        long dataCount = 0;
+        int rowCount = 0;
+        List<TetpluEsl> tetpluEslList = new ArrayList<>(); // 오라클에서 나눠서 조회한 데이터를 취합하기 위한 리스트
+        List<String> stationCodes = aimscoreMapper.selectStationCodes("ASC");
+
+        while (true)
+        {
+            try {
+                Map<String, Object> paramMap = Map.of("startNum", dataCount+1, "count", ROW_PER_TRY, "strCodes", stationCodes);
+                List<TetpluEsl> tetpluEslSubList = ssgdepartMapper.selectVTetpluEslAll(paramMap);
+                log.info("IF_ESL_DPT0.V_TETPLU_ESL size : " + tetpluEslSubList.size());
+                tetpluEslList.addAll(tetpluEslSubList);
+                dataCount += tetpluEslSubList.size();
+                if (tetpluEslSubList.size() < ROW_PER_TRY) {
+                    break;
+                }
+            } catch (Exception e) {
+                log.error("TETPLU+EST query error : " + e.getMessage(), e);
+            }
+        }
+        try {
+//            String fileName = createDatFile(); // .dat 파일 만들기
+            if (tetpluEslList.size() > 0) {    
+                for (TetpluEsl tetpluEsl : tetpluEslList) {
+                    // 1. 오라클 데이터 한글 컨버팅
+                    // tetpluEsl.setPluName(EncodingConverter.bytesToString(tetpluEsl.getPluName()));
+                    // tetpluEsl.setOriginName(EncodingConverter.bytesToString(tetpluEsl.getOriginName()));
+                    // tetpluEsl.setBrandName(EncodingConverter.bytesToString(tetpluEsl.getBrandName()));
+                    // tetpluEsl.setCateName(EncodingConverter.bytesToString(tetpluEsl.getCateName()));
+                    // tetpluEsl.setSellngPnt(EncodingConverter.bytesToString(tetpluEsl.getSellngPnt()));
+                    // tetpluEsl.setWineEval1(EncodingConverter.bytesToString(tetpluEsl.getWineEval1()));
+                    // tetpluEsl.setWineEval2(EncodingConverter.bytesToString(tetpluEsl.getWineEval2()));
+                    // tetpluEsl.setWineEval3(EncodingConverter.bytesToString(tetpluEsl.getWineEval3()));
+                    // tetpluEsl.setWinePlor(EncodingConverter.bytesToString(tetpluEsl.getWinePlor()));
+                    // tetpluEsl.setWineItemKind(EncodingConverter.bytesToString(tetpluEsl.getWineItemKind()));
+                    // tetpluEsl.setWineVint(EncodingConverter.bytesToString(tetpluEsl.getWineVint()));
+                    // tetpluEsl.setDisplayUnitName(EncodingConverter.bytesToString(tetpluEsl.getDisplayUnitName()));
+                }
+                // 2. MongoDB TETPLU_ESL 테이블 저장
+                // try {
+                //     // MongoDB 저장
+                //     tetpluEslRepository.saveAll(tetpluEslList);
+                // } catch (Exception e) {
+                //     log.error(e,e);
+                // }
+
+                int totalCnt = tetpluEslList.size();
+                List<String> ifResultList = new ArrayList<>();
+
+                // dat 파일 복수 처리(241123~)
+                List<String> fileNameList = createDatFileList(tetpluEslList);
+                for (String fileName : fileNameList) {
+
+                    // 2. AIMS insert
+                    int successCnt = 0;
+                    int failCnt = 0;
+
+                    List<String> failedPluCodeList = new ArrayList<>();
+
+                    // 2-1. 파일 base64로 변환하기 TODO
+                    String dateStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                    String filePath = path + fileName;
+                    byte[] binary = getFileBinary(filePath);
+                    String base64data = Base64.getEncoder().encodeToString(binary);
+
+                    // 2-2. /articles/upload api 쏘기
+                    SSLContext sc = SSLContext.getInstance("SSL");
+                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                    String baseUrl = apiUrl + "dashboardservice/common/articles/upload";
+                    String store = apiStore;
+                    String finalUrl = String.format("%s?store=%s", baseUrl, store);
+
+                    URL url = new URL(finalUrl);
+                    HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+                    if (httpConn instanceof HttpsURLConnection) { // HttpsURLConnection일 경우만
+                        ((HttpsURLConnection) httpConn).setHostnameVerifier((hostname, session) -> true); // 호스트명 검증 비활성화
+                    }
+                    httpConn.setRequestMethod("POST");
+                    httpConn.setRequestProperty("Content-Type", "application/json; utf-8");
+                    httpConn.setDoOutput(true);
+                    httpConn.setConnectTimeout(10000);  // 연결 타임아웃: 10초
+                    httpConn.setReadTimeout(10000);     // 읽기 타임아웃
+
+                    // 요청 본문 생성
+                    JSONObject jsonObject = new JSONObject();
+
+                    jsonObject.put("contentType", "IMAGE");
+                    jsonObject.put("fileName", fileName);
+                    jsonObject.put("imgBase64", base64data);
+                    jsonObject.put("pageIndex", 1);
+
+                    try (OutputStreamWriter wr = new OutputStreamWriter(httpConn.getOutputStream(), "UTF-8")) {
+                        wr.write(jsonObject.toString()); // jsonArray를 JSON 문자열로 변환하여 전송
+                        wr.flush();
+                    }
+
+                    // Read response body
+                    BufferedReader in = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    String ifResult = "";
+                    int responseCode = httpConn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        // AIMS insert 성공 시 successCnt +1
+                        ifResult = "SUCCESS";
+                    } else {
+                        ifResult = "ERROR";
+                    }
+
+                    ifResultList.add(ifResult);
+
+                    try {
+                        JSONObject jsonResponse = new JSONObject(response.toString());
+                        String responseCodeStr = jsonResponse.getString("responseCode");
+                        String responseMessage = jsonResponse.getString("responseMessage");
+                        String customBatchId = jsonResponse.isNull("customBatchId") ? null : jsonResponse.getString("customBatchId");
+                    } catch (JSONException e) {
+                        log.error(e, e);
+                    }
+
+                }
+
+                LocalDateTime now = LocalDateTime.now();
+                String ifDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                String ifTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
+
+                String finalIfResult = "";
+                if (ifResultList.contains("ERROR")) {
+                    if (ifResultList.contains("SUCCESS")) {
+                        finalIfResult = "PARTIAL_ERROR";
+                    } else {
+                        finalIfResult = "ERROR";
+                    }
+                } else {
+                    finalIfResult = "SUCCESS";
+                }
+
+                // 2-3. AIMS_INTERFACE_LOG insert
+                // try {
+                //     AimsInterfaceLog interfaceLog = AimsInterfaceLog.builder()
+                //     .ifType("TETPLU_ESL")
+                //     .ifDate(ifDate)
+                //     .ifTime(ifTime)
+                //     .ifResult(finalIfResult)
+                //     .ifTotalCnt(totalCnt)
+                //     .build();
+
+                //     aimsInterfaceLogRepository.save(interfaceLog);
+                //     log.info("INTERFACE_LOG INSERT : " + interfaceLog.toString());
+                // } catch (Exception e) {
+                //     logger.error("receiveVTetrplEsl-Exception 발생: {}", e.getMessage(), e);
+                // }
+            }
+        } catch (IOException e) {
+            logger.error("receiveTetpluEsl-IOException 발생: {}", e.getMessage(), e);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error("receiveTetpluEsl-NoSuchAlgorithmException 발생: {}", e.getMessage(), e);
+        } catch (KeyManagementException e) {
+            logger.error("receiveTetpluEsl-KeyManagementException 발생: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("receiveTetpluEsl-Exception 발생: {}", e.getMessage(), e);
+        }
+
+    }
+
+    /**
+     * 긴급 데이터(TETRPL_ESL) 수신 (ETL)
+     * @param
+     * @return
+     * @throws
+     */
+    public void receiveVTetrplEslEtl() {
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType){
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        } };
+
+        try {
+            List<String> stationCodes = aimscoreMapper.selectStationCodes("ASC");
+            Map<String, Object> paramMap = Map.of("strCodes", stationCodes);
+            List<TetrplEslA> tetrplEslAList = ssgdepartMapper.selectVTetrplEslA(paramMap); // AIMS insert용 조회
+            log.info("IF_ESL_DPT0.TETRPL_ESL size : {}", tetrplEslAList.size());
+
+            if (tetrplEslAList.size() > 0) {
+                // 2. AIMS insert
+                int successCnt = 0;
+                int failCnt = 0;
+                int totalCnt = tetrplEslAList.size();
+                List<String> failedPluCodeList = new ArrayList<>();
+                for (TetrplEslA tetrplEslA : tetrplEslAList) {
+
+                    // 2-1. 오라클 데이터 한글 컨버팅
+                    // tetrplEslA.setPluName(EncodingConverter.bytesToString(tetrplEslA.getPluName()));
+                    // tetrplEslA.setOriginName(EncodingConverter.bytesToString(tetrplEslA.getOriginName()));
+                    // tetrplEslA.setBrandName(EncodingConverter.bytesToString(tetrplEslA.getBrandName()));
+                    // tetrplEslA.setCateName(EncodingConverter.bytesToString(tetrplEslA.getCateName()));
+                    // tetrplEslA.setSellngPnt(EncodingConverter.bytesToString(tetrplEslA.getSellngPnt()));
+                    // tetrplEslA.setWineEval1(EncodingConverter.bytesToString(tetrplEslA.getWineEval1()));
+                    // tetrplEslA.setWineEval2(EncodingConverter.bytesToString(tetrplEslA.getWineEval2()));
+                    // tetrplEslA.setWineEval3(EncodingConverter.bytesToString(tetrplEslA.getWineEval3()));
+                    // tetrplEslA.setWinePlor(EncodingConverter.bytesToString(tetrplEslA.getWinePlor()));
+                    // tetrplEslA.setWineItemKind(EncodingConverter.bytesToString(tetrplEslA.getWineItemKind()));
+                    // tetrplEslA.setWineVint(EncodingConverter.bytesToString(tetrplEslA.getWineVint()));
+                    // tetrplEslA.setDisplayUnitName(EncodingConverter.bytesToString(tetrplEslA.getDisplayUnitName()));
+
+                    // 2-2. /articles api 쏘기
+                    SSLContext sc = SSLContext.getInstance("SSL");
+                    sc.init(null, trustAllCerts, new java.security.SecureRandom());
+                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+                    String baseUrl = apiUrl +"dashboardservice/common/articles";
+                    String store = apiStore;
+                    String company = apiCompany;
+                    String finalUrl = String.format("%s?store=%s&company=%s", baseUrl, store, company);
+
+                    URL url = new URL(finalUrl);
+                    HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+                    if (httpConn instanceof HttpsURLConnection) { // HttpsURLConnection일 경우만
+                        ((HttpsURLConnection) httpConn).setHostnameVerifier((hostname, session) -> true); // 호스트명 검증 비활성화
+                    }
+                    httpConn.setRequestMethod("POST");
+                    httpConn.setRequestProperty("Content-Type", "application/json; utf-8");
+                    httpConn.setDoOutput(true);
+                    httpConn.setConnectTimeout(10000);  // 연결 타임아웃: 10초
+                    httpConn.setReadTimeout(10000);     // 읽기 타임아웃
+
+                    // 요청 본문 생성
+                    JSONObject jsonObject = new JSONObject();
+                    JSONArray jsonArray = new JSONArray();
+                    JSONObject dataObject = new JSONObject();
+                    dataObject.put("STORE_CODE", tetrplEslA.getStoreCode());
+                    dataObject.put("PLU_CODE", tetrplEslA.getPluCode());
+                    dataObject.put("PRICE_SECT", tetrplEslA.getPriceSect());
+                    dataObject.put("START_DATE", tetrplEslA.getStartDate());
+                    dataObject.put("END_DATE", tetrplEslA.getEndDate());
+                    dataObject.put("MD_CODE", tetrplEslA.getMdCode());
+                    dataObject.put("PUM_CODE", tetrplEslA.getPumCode());
+                    dataObject.put("EVENT_SECT", tetrplEslA.getEventSect());
+                    dataObject.put("CLASS_CODE", tetrplEslA.getClassCode());
+                    dataObject.put("PLU_NAME", tetrplEslA.getPluName());
+                    dataObject.put("CURR_SAL_PRICE", tetrplEslA.getCurrSalPrice());
+                    dataObject.put("GOODS_SECT", tetrplEslA.getGoodsSect());
+                    dataObject.put("MG_RATE", tetrplEslA.getMgRate());
+                    dataObject.put("TAX_FLAG", tetrplEslA.getTaxFlag());
+                    dataObject.put("SYS_DATE", tetrplEslA.getSysDate());
+                    dataObject.put("SYS_TIME", tetrplEslA.getSysTime());
+                    dataObject.put("ORIGIN_NAME", tetrplEslA.getOriginName());
+                    dataObject.put("NOR_SAL_PRICE", tetrplEslA.getNorSalPrice());
+                    dataObject.put("CONTENTS_QTY", tetrplEslA.getContentsQty());
+                    dataObject.put("DISPLAY_UNIT_NAME", tetrplEslA.getDisplayUnitName());
+                    dataObject.put("DISPLAY_UNIT_QTY", tetrplEslA.getDisplayUnitQty());
+                    dataObject.put("DEAL_GUBUN", tetrplEslA.getDealGubn());
+                    dataObject.put("ORIGIN_CODE", tetrplEslA.getOriginCode());
+                    dataObject.put("BRAND_NAME", tetrplEslA.getBrandName());
+                    dataObject.put("CATE_CODE", tetrplEslA.getCateCode());
+                    dataObject.put("CATE_NAME", tetrplEslA.getCateName());
+                    dataObject.put("MOD_DATE", tetrplEslA.getModDate());
+                    dataObject.put("MOD_TIME", tetrplEslA.getModTime());
+                    dataObject.put("MOD_EMPNO", tetrplEslA.getModEmpno());
+                    dataObject.put("IF_DATE", tetrplEslA.getIfDate());
+                    dataObject.put("IF_TIME", tetrplEslA.getIfTime());
+                    dataObject.put("IF_EMPNO", tetrplEslA.getIfEmpno());
+                    dataObject.put("DISPLAY_UNIT_PRICE", tetrplEslA.getDisplayUnitPrice());
+                    dataObject.put("SELLNG_PNT", tetrplEslA.getSellngPnt());
+                    dataObject.put("GOOS_AUTH_IMG", tetrplEslA.getGoosAuthImg());
+                    dataObject.put("WINE_SUGR_CONT", tetrplEslA.getWineSugrCont());
+                    dataObject.put("WINE_BODY", tetrplEslA.getWineBody());
+                    dataObject.put("WINE_KIND", tetrplEslA.getWineKind());
+                    dataObject.put("WINE_EVAL_1", tetrplEslA.getWineEval1());
+                    dataObject.put("WINE_EVAL_2", tetrplEslA.getWineEval2());
+                    dataObject.put("WINE_EVAL_3", tetrplEslA.getWineEval3());
+                    dataObject.put("WINE_PLOR", tetrplEslA.getWinePlor());
+                    dataObject.put("WINE_ITEM_KIND", tetrplEslA.getWineItemKind());
+                    dataObject.put("WINE_VINT", tetrplEslA.getWineVint());
+                    dataObject.put("MOBL_CUP_GOOS_YN", tetrplEslA.getMoblCupGoosYn());
+                    dataObject.put("LAYOUT_GUBN_1", tetrplEslA.getLayoutGubn1());
+                    dataObject.put("LAYOUT_GUBN_2", tetrplEslA.getLayoutGubn2());
+                    dataObject.put("PLOR_ORIGIN_NAME", tetrplEslA.getPlorOriginName());
+                    dataObject.put("CONTENTS_QTY_UNIT", tetrplEslA.getContentsQtyUnit());
+                    dataObject.put("QR_CODE", tetrplEslA.getQrCode());
+                    dataObject.put("COMBINE_DISPLAY_UNIT_PRICE", tetrplEslA.getCombineDisplayUnitPrice());
+                    // 식품관용 코드 추가 @250214
+                    dataObject.put("DISPLAY_TYPE", tetrplEslA.getLayoutGubn1() + tetrplEslA.getLayoutGubn2());
+                    // 추가속성
+                    String addPropStr = tetrplEslA.getGoosInfoImg() == null ? "" : tetrplEslA.getGoosInfoImg();
+                    String[] addProps = addPropStr.split("\\|");
+                    List<String> addPropList = new ArrayList<>();
+                    for (String addProp : addProps) addPropList.add(addProp.trim());
+                    Collections.sort(addPropList, Collections.reverseOrder());
+                    dataObject.put("GOOS_INFO_CD1", addPropList.size() > 0 ? addPropList.get(0) : "");
+                    dataObject.put("GOOS_INFO_CD2", addPropList.size() > 1 ? addPropList.get(1) : "");
+                    // 단위가격 문자열
+                    dataObject.put("UNIT_PRICE_STR", makeUnitPriceString(tetrplEslA));
+                    // 행사기간
+                    dataObject.put("EVENT_PERIOD", makeEventPeriodString(tetrplEslA));
+
+                    jsonObject.put("articleId", tetrplEslA.getPluCode());
+                    jsonObject.put("articleName", tetrplEslA.getPluName());
+                    jsonObject.put("data", dataObject);
+                    jsonObject.put("nfcUrl", "");
+                    jsonArray.put(jsonObject);
+
+                    try (OutputStreamWriter wr = new OutputStreamWriter(httpConn.getOutputStream(), "UTF-8")) {
+                        wr.write(jsonArray.toString()); // jsonArray를 JSON 문자열로 변환하여 전송
+                        wr.flush();
+                    }
+
+                    // Read response body
+                    BufferedReader in = new BufferedReader(new InputStreamReader(httpConn.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+
+                    int responseCode = httpConn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        // AIMS insert 성공 시 successCnt +1
+                        successCnt++;
+                    } else {
+                        // AIMS insert 실패 시 failCnt +1
+                        failCnt++;
+                        failedPluCodeList.add(tetrplEslA.getPluCode());
+                    }
+                }
+
+                LocalDateTime now = LocalDateTime.now();
+                String ifDate = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                String ifTime = now.format(DateTimeFormatter.ofPattern("HHmmss"));
+
+                String ifResult = "";
+                if (totalCnt == successCnt) {
+                    ifResult = "SUCCESS";
+                } else if (totalCnt > successCnt) {
+                    ifResult = "PARTIAL_SUCCESS";
+                } else {
+                    ifResult = "FAIL";
+                }
+
+                // 2-3. AIMS_INTERFACE_LOG insert
+                // try {
+                //     AimsInterfaceLog interfaceLog = AimsInterfaceLog.builder()
+                //         .ifType("TETRPL_ESL")
+                //         .ifDate(ifDate)
+                //         .ifTime(ifTime)
+                //         .ifResult(ifResult)
+                //         .ifTotalCnt(totalCnt)
+                //         .ifSuccessCnt(successCnt)
+                //         .ifFailCnt(failCnt)
+                //         .failedPluCodes(failedPluCodeList)
+                //         .build();
+
+                //     aimsInterfaceLogRepository.save(interfaceLog);
+                //     log.info("INTERFACE_LOG INSERT : " + interfaceLog.toString());
+                // } catch (Exception e) {
+                //     logger.error("receiveVTetrplEsl-AIMS_INTERFACE_LOG insert Exception 발생: {}", e.getMessage(), e);
+                // }
             }
 
         } catch (IOException e) {

@@ -20,13 +20,13 @@ public class Scheduler {
         if (STATE_TETPLU != null) return;
 
         STATE_TETPLU = "1";
-        eslInterfaceService.receiveTetpluEsl();
+        eslInterfaceService.receiveTetpluEslEtl();
         STATE_TETPLU = null;
     }
 
     @Scheduled(cron = "${server.schedule.receiveVTetrplEsl.cron}") // 0,30
     public void receiveVTetrplEslSchedule() {
-        eslInterfaceService.receiveVTetrplEsl();
+        eslInterfaceService.receiveVTetrplEslEtl();
     }
 
 }
